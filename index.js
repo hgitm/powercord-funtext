@@ -5,17 +5,19 @@ module.exports = class FunText extends Plugin {
     async startPlugin() {
         const { upload } = await getModule([ 'upload', 'cancel' ]);
 
-        const send = buf => upload(channels.getChannelId(), new File(buf, '_.png'));
-
         await (new FontFace('Whitney', 'url(https://discord.com/assets/6c6374bad0b0b6d204d8d6dc4a18d820.woff)')).load();
 
         powercord.api.commands.registerCommand({
             command: "funtext",
             aliases: ["ft"],
             description: "",
-            usage: ""
+            usage: "",
             executor: async (_) => {
-                send(genImage())
+                await this.send(upload,
+                    await this.getCanvasBlob(
+                        await this.genImage()
+                    )
+                );
             }
         });
     }
@@ -31,6 +33,9 @@ module.exports = class FunText extends Plugin {
 
         ctx.fillText("test",10,10);
 
-        return context.getImageData(0, 0, canvas.width, canvas.height).data.buffer;
+        return canvas
     }
+
+    getCanvasBlob(canvas) { return new Promise((resolve, reject) => {canvas.toBlob(resolve)}); }
+    async send(upload, buf) { upload(channels.getChannelId(), new File([await buf.arrayBuffer()], '_.png')); }
 };
