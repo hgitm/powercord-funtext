@@ -1,3 +1,5 @@
+const VERSION = '1.0.0';
+
 const { Plugin } = require("powercord/entities");
 const { channels, getModule } = require('powercord/webpack');
 const FunTextModules = require('./modules');
@@ -22,6 +24,16 @@ module.exports = class FunText extends Plugin {
 
                 this.scalar = parseFloat(args[0]);
                 return {send: false, result: `Set scalar to ${args[0]}.`};
+            }
+        });
+
+        powercord.api.commands.registerCommand({
+            command: `t_Version`,
+            aliases: [],
+            description: "",
+            usage: "",
+            executor: async (args) => {
+                return {send: false, result: `Version ${VERSION}`};
             }
         });
 
