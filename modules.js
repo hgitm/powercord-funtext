@@ -15,7 +15,7 @@ module.exports = class FunTextModules {
         if (text.split(':').length < 2) { this.N({ctx,text, ...data}); return; }
         const [color, ...rest] = text.split(':');
         text = rest.join(':');
-        ctx.fillStyle = `#${color}`;
+        ctx.fillStyle = `${color}`;
         return text;
     }
 }
