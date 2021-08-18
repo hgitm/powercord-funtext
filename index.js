@@ -7,6 +7,7 @@ module.exports = class FunText extends Plugin {
         const { upload } = await getModule([ 'upload', 'cancel' ]);
         this.upload = upload;
         this.rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
+        await this.loadFont("Whitney","https://discord.com/assets/6c6374bad0b0b6d204d8d6dc4a18d820.woff")
 
         await FunTextModules._init(this);
 
@@ -17,9 +18,9 @@ module.exports = class FunText extends Plugin {
             usage: "",
             executor: async (args) => {
                 if (args.length === 0) return {send: false, result: `Scalar is set to ${this.scalar}.`};
-                if (Number.isNaN(parseInt(args[0]))) return {send: false, result: `Scalar must be an integer.`};
+                if (Number.isNaN(parseFloat(args[0]))) return {send: false, result: `Scalar must be an integer.`};
 
-                this.scalar = parseInt(args[0]);
+                this.scalar = parseFloat(args[0]);
                 return {send: false, result: `Set scalar to ${args[0]}.`};
             }
         });
@@ -55,12 +56,25 @@ module.exports = class FunText extends Plugin {
 
     async genImage(func, text) {
         const canvas = document.createElement("canvas");
-        canvas.height = Math.floor(1.2 * this.rem) * this.scalar;
+        canvas.height = Math.floor(1.2 * this.rem * this.scalar);
+
+        const lines = this.genLines(text);
+        console.log(lines);
+        canvas.height += canvas.height * 1.9 * (lines.length-1);
+
         canvas.width = 400 * this.scalar;
         const ctx = canvas.getContext("2d");
         const unit = this.scalar * this.rem;
 
-        func(canvas,ctx,unit,0.8*unit,text);
+        ctx.font = `${unit}px Whitney`;
+        ctx.fillStyle = "#ffffff";
+
+        const data = {main: this,canvas,ctx,fontSize: unit,spaceDown: 0.8*unit,text};
+        const result = func(data);
+        const resultLines = this.genLines(text);
+        if (typeof result === "string") {
+            this.canvasFillText(data, resultLines);
+        }
 
         return canvas;
     }
@@ -76,5 +90,32 @@ module.exports = class FunText extends Plugin {
     }
     async loadFont(fontName,fontUrl) {
         await (new FontFace(fontName, `url(${fontUrl})`)).load();
+    }
+    canvasFillText({ctx, spaceDown}, lines) {
+        lines.map((line,i) => {
+            ctx.fillText(line,0,spaceDown+spaceDown*1.9*i);
+        });
+    }
+    genLines(text) {
+        let finalArray = [];
+        let index = 0;
+        for (let i = 0;;i++) {
+            if (this.getTextWidth( text.slice(0,i), `${this.rem}px Whitney` ) > 350) {
+                finalArray[index] = text.slice(0,i);
+                index++;
+                text = text.slice(i);
+            }
+            if (i >= text.length) break;
+        }
+        if (finalArray.length === 0) finalArray.push(text);
+        return finalArray;
+    }
+    getTextWidth(text, font) {
+        // re-use canvas object for better performance
+        var canvas = this.getTextWidth.canvas || (this.getTextWidth.canvas = document.createElement("canvas"));
+        let context = canvas.getContext("2d");
+        context.font = font;
+        let metrics = context.measureText(text);
+        return metrics.width;
     }
 };
