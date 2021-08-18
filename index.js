@@ -59,7 +59,6 @@ module.exports = class FunText extends Plugin {
         canvas.height = Math.floor(1.2 * this.rem * this.scalar);
 
         const lines = this.genLines(text);
-        console.log(lines);
         canvas.height += canvas.height * 1.9 * (lines.length-1);
 
         canvas.width = 400 * this.scalar;
@@ -71,7 +70,7 @@ module.exports = class FunText extends Plugin {
 
         const data = {main: this,canvas,ctx,fontSize: unit,spaceDown: 0.8*unit,text};
         const result = func(data);
-        const resultLines = this.genLines(text);
+        const resultLines = this.genLines(result);
         if (typeof result === "string") {
             this.canvasFillText(data, resultLines);
         }
